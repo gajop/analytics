@@ -22,7 +22,7 @@ local socket = socket
 local client
 
 local LOG_SECTION = "analytics"
-ANALYTICS_DIRNAME = "LuaUI/widgets/analytics/"
+
 VFS.Include(ANALYTICS_DIRNAME .. "json.lua")
 
 --local host = "localhost"
@@ -86,7 +86,7 @@ function widget:OnMethodCallback(method, result)
 end
 
 function widget:ParseJsonRPC(str)
-    Spring.Echo(str)
+    --Spring.Echo(str)
     --Spring.Log(LOG_SECTION, LOG.NOTICE, str)
     local startIndex = str:find('{')
     local jsonStr = str:sub(startIndex)
@@ -108,7 +108,7 @@ function widget:CallJsonRPC(method, ...)
         "Content-Type: text/plain;charset=UTF-8 \r\n\r\n" .. 
     content
     client:send(msg)
-    Spring.Echo(msg)
+    --Spring.Echo(msg)
     lastMethod = method
 end
 
@@ -158,10 +158,10 @@ function widget:Update()
 	for _, input in ipairs(readable) do
 		local s, status, partial = input:receive('*a') --try to read all data
 		if status == "timeout" or status == nil then
-            Spring.Echo("status", status)
+            --Spring.Echo("status", status)
 			self:SocketDataReceived(input, s or partial)
 		elseif status == "closed" then
-            Spring.Echo("closed")
+            --Spring.Echo("closed")
 			input:close()
 			client = nil
 		end
