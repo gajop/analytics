@@ -117,7 +117,7 @@ end
 --     local t0 = clock()
 --     while clock() - t0 <= n do end
 -- end
---     
+--
 function widget:CloseSession()
     self:CallJsonRPC("closeSession", sessionID)
     client:close()
@@ -139,6 +139,16 @@ function widget:OpenSession()
 --         engine_instance_id = gameID,
     --    user_name = userName
     })
+end
+
+function widget:SendEvent(eventName, value)
+    local event = { name = eventName, session_id = sessionID }
+    if type(value) == "string" then
+        event.value_str = value
+    elseif type(value) == "number" then
+        event.value_float = value
+    end
+    self:CallJsonRPC("registerEvent", event)
 end
 
 function widget:Update()
