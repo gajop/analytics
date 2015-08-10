@@ -26,6 +26,7 @@ local LOG_SECTION = "analytics"
 VFS.Include(ANALYTICS_DIRNAME .. "json.lua")
 
 --local host = "localhost"
+--local port = 8000
 local host = "52.24.31.116" --"ec2-52-24-31-116.us-west-2.compute.amazonaws.com"
 local port = 80
 local connected = false
@@ -141,8 +142,12 @@ function widget:OpenSession()
     })
 end
 
-function widget:SendEvent(eventName, value)
-    local event = { name = eventName, session_id = sessionID }
+function widget:SendEvent(eventName, value, time)
+    local event = { 
+        name = eventName, 
+        session_id = sessionID, 
+        time = time or os.clock()
+    }
     if type(value) == "string" then
         event.value_str = value
     elseif type(value) == "number" then
