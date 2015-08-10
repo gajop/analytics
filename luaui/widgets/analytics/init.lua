@@ -34,6 +34,8 @@ local lastMethod = nil
 local sessionID
 local gameID
 
+local eventBuffer = {}
+
 local function dumpConfig()
 	-- dump all luasocket related config settings to console
     Spring.Log(LOG_SECTION, LOG.NOTICE, "Dumping config...")
@@ -61,13 +63,15 @@ function widget:Initialize()
     Spring.Log(LOG_SECTION, LOG.NOTICE, "Initializing analytics usage tracking...")
     WG.analytics = self
 	dumpConfig()
-    -- FIXME: open session after game ID has been received
-    self:OpenSession()
 end
 
 function widget:GameID(_gameID)
-    --Spring.Echo("game ID: ", _gameID)
-    gameID = _gameID
+    -- ignore _gameID and use the ID provided by the API
+    if Spring.GetGameID then
+        gameID = Spring.GetGameID()
+    end
+    -- open session after game ID has been received
+    self:OpenSession()
 end
 
 function widget:Shutdown()
@@ -83,6 +87,10 @@ function widget:OnMethodCallback(method, result)
     --Spring.Echo("method callback", method, result)
     if method == "openSession" then
         sessionID = result
+        for _, event in pairs(eventBuffer) do
+            self:CallJsonRPC("registerEvent", event)
+        end
+        eventBuffer = {}
     end
 end
 
@@ -129,17 +137,19 @@ function widget:OpenSession()
     --Spring.Echo(players)
     --userName = players[Spring.GetMyPlayerID()].name
     --Spring.Echo(userName)
-	self:CallJsonRPC("openSession", { 
+    local session = { 
         game_name = Game.gameName,
         game_short_name = Game.gameShortName,
         game_version = Game.gameVersion,
         engine_version = Game.version,
         engine_build_flags = Game.buildFlags,
         map_name = Game.mapName,
--- FIXME: gameID is only given once per game (why?!) and isn't a real (printable) string
---         engine_instance_id = gameID,
     --    user_name = userName
-    })
+    }
+    if gameID ~= nil then
+        session.engine_instance_id = gameID
+    end
+	self:CallJsonRPC("openSession", session)
 end
 
 function widget:SendEvent(eventName, value, time)
@@ -153,7 +163,11 @@ function widget:SendEvent(eventName, value, time)
     elseif type(value) == "number" then
         event.value_float = value
     end
-    self:CallJsonRPC("registerEvent", event)
+    if sessionID ~= nil then
+        self:CallJsonRPC("registerEvent", event)
+    else
+        table.insert(eventBuffer, event)
+    end
 end
 
 function widget:Update()
