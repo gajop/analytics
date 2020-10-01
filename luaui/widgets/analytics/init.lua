@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date      = 'future',
 		license   = 'GNU GPL v2',
 		layer     = 0,
-		enabled   = true,
+		enabled   = false, -- backend is down
 		handler   = true,
 	}
 end
@@ -112,9 +112,9 @@ function widget:CallJsonRPC(method, ...)
     local jsonRPC = { id = "jsonrpc", params = {...}, method = method, jsonrpc = "1.0" }
     local content = json.encode(jsonRPC)
     local contentLength = "Content-Length: " .. #content .. "\r\n"
-    local msg = "POST /json/ HTTP/1.1\r\nHost: " .. host ..  " \r\n" .. 
+    local msg = "POST /json/ HTTP/1.1\r\nHost: " .. host ..  " \r\n" ..
         contentLength ..
-        "Content-Type: text/plain;charset=UTF-8 \r\n\r\n" .. 
+        "Content-Type: text/plain;charset=UTF-8 \r\n\r\n" ..
     content
     client:send(msg)
     --Spring.Echo(msg)
@@ -137,11 +137,11 @@ function widget:OpenSession()
     --Spring.Echo(players)
     --userName = players[Spring.GetMyPlayerID()].name
     --Spring.Echo(userName)
-    local session = { 
+    local session = {
         game_name = Game.gameName,
         game_short_name = Game.gameShortName,
         game_version = Game.gameVersion,
-        engine_version = Game.version,
+        engine_version = Engine.version,
         engine_build_flags = Game.buildFlags,
         map_name = Game.mapName,
     --    user_name = userName
@@ -153,9 +153,9 @@ function widget:OpenSession()
 end
 
 function widget:SendEvent(eventName, value, time)
-    local event = { 
-        name = eventName, 
-        session_id = sessionID, 
+    local event = {
+        name = eventName,
+        session_id = sessionID,
         time = time or os.clock()
     }
     if type(value) == "string" then
